@@ -2,27 +2,78 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Importar las demás pantallas
+import 'clientes.dart';
+import 'ubicaciones.dart';
+
 void main() async {
-  // Asegura que la inicialización de Firebase ocurra antes de correr la app
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Inicializa Firebase
-  runApp(const MyApp()); // Lanza la aplicación
+  await Firebase.initializeApp(); 
+  runApp(const MyApp());
 }
 
-// Widget principal
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      debugShowCheckedModeBanner: false, // Quita la etiqueta de debug
-      home: ProductosScreen(), // Pantalla principal que muestra los productos
+      debugShowCheckedModeBanner: false,
+      home: MainScreen(),
     );
   }
 }
 
-// Pantalla que lista los documentos de la colección 'productos'
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    // Lista de pantallas (productos es la que ya tenías)
+    final List<Widget> _pages = [
+      const ProductosScreen(),   // Productos con Firebase
+      const ClientesScreen(),    // Clientes
+      const UbicacionesScreen(), // Ubicaciones
+    ];
+
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: "Productos",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: "Clientes",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: "Ubicaciones",
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ============================
+/// Pantalla de Productos
+/// ============================
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});
 
@@ -34,15 +85,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
   final TextEditingController _nombre = TextEditingController();
   final TextEditingController _precio = TextEditingController();
 
-  List<Map<String, dynamic>> productos = []; // Lista para guardar los productos
+  List<Map<String, dynamic>> productos = [];
 
   @override
   void initState() {
     super.initState();
-    obtenerProductos(); // Carga los productos al iniciar la pantalla
+    obtenerProductos();
   }
 
-  // Función para obtener los documentos de la colección 'productos'
   Future<void> obtenerProductos() async {
     try {
       final snapshot =
@@ -61,7 +111,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
-  // Crear producto (sin parámetros)
   Future<void> crearProductos() async {
     try {
       await FirebaseFirestore.instance.collection('productos').add({
@@ -72,32 +121,15 @@ class _ProductosScreenState extends State<ProductosScreen> {
       _nombre.clear();
       _precio.clear();
 
-      obtenerProductos(); // recarga la lista
+      obtenerProductos();
     } catch (e) {
       print('Error al crear producto: $e');
     }
   }
 
-  // Actualizar producto
-  Future<void> actualizarProductos(
-      String id, String nombre, String precio) async {
-    try {
-      await FirebaseFirestore.instance.collection('productos').doc(id).update({
-        'nombre': nombre,
-        'precio': precio,
-      });
-
-      obtenerProductos();
-    } catch (e) {
-      print('Error al actualizar producto: $e');
-    }
-  }
-
-  // Borrar producto
   Future<void> borrarProductos(String id) async {
     try {
       await FirebaseFirestore.instance.collection('productos').doc(id).delete();
-
       obtenerProductos();
     } catch (e) {
       print('Error al borrar producto: $e');
@@ -141,7 +173,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () =>
-                                borrarProductos(producto['id']), // borrar
+                                borrarProductos(producto['id']),
                           ),
                         );
                       },
