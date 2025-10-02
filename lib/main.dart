@@ -37,14 +37,14 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     // Lista de pantallas (productos es la que ya tenías)
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       const ProductosScreen(),   // Productos con Firebase
       const ClientesScreen(),    // Clientes
       const UbicacionesScreen(), // Ubicaciones
     ];
 
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
