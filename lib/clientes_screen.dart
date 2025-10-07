@@ -120,7 +120,7 @@ class _ProductosOrganicosScreenState extends State<ProductosOrganicosScreen> {
       appBar: AppBar(
         title: const Text('Gestión de Productos Orgánicos'),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(122, 76, 175, 80),
+        backgroundColor: const Color.fromARGB(122, 152, 120, 102),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

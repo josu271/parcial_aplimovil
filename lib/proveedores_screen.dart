@@ -22,8 +22,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
   final TextEditingController _monto = TextEditingController();
   final TextEditingController _cuotas = TextEditingController();
 
-  String? _estadoSeleccionado;
-  final List<String> _estados = ['Activo', 'Cancelado'];
+  bool _estadoActivo = true; 
 
   String? _idSeleccionado;
 
@@ -34,7 +33,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
       'nombre_cliente': _nombreCliente.text,
       'monto': double.parse(_monto.text),
       'cuotas': int.parse(_cuotas.text),
-      'estado': _estadoSeleccionado,
+      'estado': _estadoActivo, 
     };
 
     try {
@@ -52,7 +51,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
       'nombre_cliente': _nombreCliente.text,
       'monto': double.parse(_monto.text),
       'cuotas': int.parse(_cuotas.text),
-      'estado': _estadoSeleccionado,
+      'estado': _estadoActivo,
     };
 
     try {
@@ -77,7 +76,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
       _nombreCliente.clear();
       _monto.clear();
       _cuotas.clear();
-      _estadoSeleccionado = null;
+      _estadoActivo = true;
       _idSeleccionado = null;
     });
   }
@@ -88,7 +87,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('FinanPlus - Gestión de Préstamos'),
-          backgroundColor: const Color.fromARGB(255, 87, 137, 123),
+          backgroundColor: const Color.fromARGB(122, 152, 120, 102),
           centerTitle: true,
         ),
         body: SingleChildScrollView(
@@ -148,24 +147,16 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
                   },
                 ),
                 const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: _estadoSeleccionado,
-                  items: _estados.map((estado) {
-                    return DropdownMenuItem(
-                      value: estado,
-                      child: Text(estado),
-                    );
-                  }).toList(),
+                SwitchListTile(
+                  title: const Text('Estado del préstamo'),
+                  subtitle: Text(_estadoActivo ? 'Activo' : 'Cancelado'),
+                  value: _estadoActivo,
                   onChanged: (value) {
                     setState(() {
-                      _estadoSeleccionado = value;
+                      _estadoActivo = value;
                     });
                   },
-                  decoration: const InputDecoration(
-                    labelText: 'Estado del préstamo',
-                    icon: Icon(Icons.assignment_turned_in),
-                  ),
-                  validator: (value) => value == null ? 'Seleccione un estado' : null,
+                  secondary: const Icon(Icons.assignment_turned_in),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
@@ -214,6 +205,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
                       itemCount: docs.length,
                       itemBuilder: (context, index) {
                         final prestamo = docs[index];
+                        final bool estadoBool = prestamo['estado'] ?? false;
                         return Card(
                           elevation: 2,
                           margin: const EdgeInsets.symmetric(vertical: 6),
@@ -225,7 +217,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
                               children: [
                                 Text('Monto: S/. ${prestamo['monto']}'),
                                 Text('Cuotas: ${prestamo['cuotas']}'),
-                                Text('Estado: ${prestamo['estado']}'),
+                                Text('Estado: ${estadoBool ? 'Activo' : 'Cancelado'}'),
                               ],
                             ),
                             trailing: Row(
@@ -239,7 +231,7 @@ class _FinanPlusAppState extends State<FinanPlusApp> {
                                       _nombreCliente.text = prestamo['nombre_cliente'];
                                       _monto.text = prestamo['monto'].toString();
                                       _cuotas.text = prestamo['cuotas'].toString();
-                                      _estadoSeleccionado = prestamo['estado'];
+                                      _estadoActivo = estadoBool;
                                     });
                                   },
                                 ),
