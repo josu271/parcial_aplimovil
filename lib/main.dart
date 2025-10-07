@@ -33,7 +33,7 @@ int _selectedIndex = 0;
 final List<Widget> _screens = const [
 TechStore(),
 GreenMarket(),
-ProveedoresScreen(),
+FinanPlusApp(),
 ];
 void _onItemTapped(int index) {
 setState(() {
