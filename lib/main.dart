@@ -31,8 +31,8 @@ State<BottomNav> createState() => _BottomNavState();
 class _BottomNavState extends State<BottomNav> {
 int _selectedIndex = 0;
 final List<Widget> _screens = const [
-ProductosTecnologicosScreen(),
-ClientesScreen(),
+TechStore(),
+GreenMarket(),
 ProveedoresScreen(),
 ];
 void _onItemTapped(int index) {

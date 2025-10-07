@@ -5,336 +5,311 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const ClientesScreen());
+  runApp(const GreenMarket());
 }
 
-class ClientesScreen extends StatefulWidget {
-  const ClientesScreen({super.key});
+class GreenMarket extends StatelessWidget {
+  const GreenMarket({super.key});
 
   @override
-  State<ClientesScreen> createState() => _ClientesScreenState();
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ProductosOrganicosScreen(),
+    );
+  }
 }
 
-class _ClientesScreenState extends State<ClientesScreen> {
+class ProductosOrganicosScreen extends StatefulWidget {
+  const ProductosOrganicosScreen({super.key});
+
+  @override
+  State<ProductosOrganicosScreen> createState() =>
+      _ProductosOrganicosScreenState();
+}
+
+class _ProductosOrganicosScreenState extends State<ProductosOrganicosScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _dniController = TextEditingController();
-  final TextEditingController _cargoController = TextEditingController();
+  final TextEditingController _precioController = TextEditingController();
+  final TextEditingController _ciudadController = TextEditingController();
 
-  String? _areaSeleccionada;
-  DateTime? _fechaIngreso;
+  String? _categoriaSeleccionada;
   bool _activo = true;
   String? _idSeleccionado;
 
-  final List<String> _areas = ['Cocina', 'Atención', 'Delivery', 'Administración'];
+  final List<String> _categorias = ['Fruta', 'Verdura', 'Bebida'];
 
   void _limpiarFormulario() {
     setState(() {
       _nombreController.clear();
-      _dniController.clear();
-      _cargoController.clear();
-      _areaSeleccionada = null;
-      _fechaIngreso = null;
+      _precioController.clear();
+      _ciudadController.clear();
+      _categoriaSeleccionada = null;
       _activo = true;
       _idSeleccionado = null;
     });
   }
 
-  Future<void> _createEmpleado() async {
+  Future<void> _crearProducto() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final datos = {
-      'nombreCompleto': _nombreController.text.trim(),
-      'dni': _dniController.text.trim(),
-      'area': _areaSeleccionada,
-      'cargo': _cargoController.text.trim(),
-      'fechaIngreso': Timestamp.fromDate(_fechaIngreso!),
+      'nombre': _nombreController.text.trim(),
+      'categoria': _categoriaSeleccionada,
+      'precio': double.parse(_precioController.text.trim()),
+      'ciudadOrigen': _ciudadController.text.trim(),
       'activo': _activo,
     };
 
     try {
-      await FirebaseFirestore.instance.collection('Empleados').add(datos);
+      await FirebaseFirestore.instance.collection('ProductosOrganicos').add(datos);
       _limpiarFormulario();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Empleado agregado correctamente')),
+        const SnackBar(content: Text('Producto agregado correctamente')),
       );
     } catch (e) {
-      print('Error al crear empleado: $e');
+      print('Error al crear producto: $e');
     }
   }
 
-  Future<void> _updateEmpleado(String id) async {
+  Future<void> _actualizarProducto(String id) async {
+    if (!_formKey.currentState!.validate()) return;
+
     final datos = {
-      'nombreCompleto': _nombreController.text.trim(),
-      'dni': _dniController.text.trim(),
-      'area': _areaSeleccionada,
-      'cargo': _cargoController.text.trim(),
-      'fechaIngreso': Timestamp.fromDate(_fechaIngreso!),
+      'nombre': _nombreController.text.trim(),
+      'categoria': _categoriaSeleccionada,
+      'precio': double.parse(_precioController.text.trim()),
+      'ciudadOrigen': _ciudadController.text.trim(),
       'activo': _activo,
     };
 
     try {
-      await FirebaseFirestore.instance.collection('Empleados').doc(id).update(datos);
+      await FirebaseFirestore.instance
+          .collection('ProductosOrganicos')
+          .doc(id)
+          .update(datos);
       _limpiarFormulario();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Empleado actualizado correctamente')),
+        const SnackBar(content: Text('Producto actualizado correctamente')),
       );
     } catch (e) {
-      print('Error al actualizar empleado: $e');
+      print('Error al actualizar producto: $e');
     }
   }
 
-  Future<void> _deleteEmpleado(String id) async {
+  Future<void> _eliminarProducto(String id) async {
     try {
-      await FirebaseFirestore.instance.collection('Empleados').doc(id).delete();
-      if (_idSeleccionado == id) _limpiarFormulario();
+      await FirebaseFirestore.instance
+          .collection('ProductosOrganicos')
+          .doc(id)
+          .delete();
+      _limpiarFormulario();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Empleado eliminado')),
+        const SnackBar(content: Text('Producto eliminado correctamente')),
       );
     } catch (e) {
-      print('Error al eliminar empleado: $e');
-    }
-  }
-
-  Future<void> _seleccionarFechaIngreso(BuildContext context) async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: _fechaIngreso ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-    if (fecha != null) {
-      setState(() {
-        _fechaIngreso = fecha;
-      });
+      print('Error al eliminar producto: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Gestión de Empleados',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Gestión de Empleados'),
-          backgroundColor: const Color.fromARGB(122, 152, 120, 102),
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _nombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre completo',
-                    icon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Ingrese el nombre completo';
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestión de Productos Orgánicos'),
+        centerTitle: true,
+        backgroundColor: const Color.fromARGB(122, 76, 175, 80),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _nombreController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del producto',
+                  icon: Icon(Icons.shopping_basket),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Ingrese el nombre del producto';
+                  }
+                  if (value.trim().length < 3) {
+                    return 'Debe tener al menos 3 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _categoriaSeleccionada,
+                decoration: const InputDecoration(
+                  labelText: 'Categoría',
+                  icon: Icon(Icons.category),
+                ),
+                items: _categorias
+                    .map((cat) => DropdownMenuItem(
+                          value: cat,
+                          child: Text(cat),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _categoriaSeleccionada = value;
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Seleccione una categoría' : null,
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _precioController,
+                decoration: const InputDecoration(
+                  labelText: 'Precio (S/)',
+                  icon: Icon(Icons.attach_money),
+                ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingrese un precio';
+                  }
+                  final num? precio = num.tryParse(value);
+                  if (precio == null || precio <= 0) {
+                    return 'El precio debe ser mayor que 0';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _ciudadController,
+                decoration: const InputDecoration(
+                  labelText: 'Ciudad de origen',
+                  icon: Icon(Icons.location_city),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Ingrese la ciudad de origen';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              SwitchListTile(
+                title: const Text('¿Activo?'),
+                value: _activo,
+                onChanged: (value) {
+                  setState(() {
+                    _activo = value;
+                  });
+                },
+                secondary: Icon(
+                  _activo ? Icons.check_circle : Icons.cancel,
+                  color: _activo ? Colors.green : Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                icon: Icon(_idSeleccionado == null ? Icons.add : Icons.save),
+                label: Text(_idSeleccionado == null
+                    ? 'Agregar Producto'
+                    : 'Actualizar Producto'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      _idSeleccionado == null ? Colors.green : Colors.blue,
+                ),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    if (_idSeleccionado == null) {
+                      _crearProducto();
+                    } else {
+                      _actualizarProducto(_idSeleccionado!);
                     }
-                    if (value.trim().length < 3) {
-                      return 'Debe tener al menos 3 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _dniController,
-                  decoration: const InputDecoration(
-                    labelText: 'DNI',
-                    icon: Icon(Icons.badge),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Ingrese el DNI';
-                    if (!RegExp(r'^\d{8}$').hasMatch(value)) {
-                      return 'El DNI debe tener 8 dígitos numéricos';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: _areaSeleccionada,
-                  decoration: const InputDecoration(
-                    labelText: 'Área',
-                    icon: Icon(Icons.work),
-                  ),
-                  items: _areas
-                      .map((area) => DropdownMenuItem(
-                            value: area,
-                            child: Text(area),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _areaSeleccionada = value;
-                    });
-                  },
-                  validator: (value) =>
-                      value == null ? 'Seleccione un área' : null,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _cargoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Cargo',
-                    icon: Icon(Icons.assignment_ind),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingrese el cargo';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                ListTile(
-                  leading: const Icon(Icons.date_range),
-                  title: Text(_fechaIngreso == null
-                      ? 'Selecciona fecha de ingreso'
-                      : 'Ingreso: ${_fechaIngreso!.day}/${_fechaIngreso!.month}/${_fechaIngreso!.year}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: () => _seleccionarFechaIngreso(context),
-                  ),
-                ),
-                if (_fechaIngreso == null)
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 50, top: 4),
-                      child: Text(
-                        'Seleccione una fecha de ingreso',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
-                  ),
-                SwitchListTile(
-                  title: const Text('¿Activo?'),
-                  value: _activo,
-                  onChanged: (value) {
-                    setState(() {
-                      _activo = value;
-                    });
-                  },
-                  secondary: Icon(
-                    _activo ? Icons.check_circle : Icons.cancel,
-                    color: _activo ? Colors.green : Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  icon: Icon(_idSeleccionado == null ? Icons.add : Icons.save),
-                  label: Text(_idSeleccionado == null
-                      ? 'Agregar Empleado'
-                      : 'Actualizar Empleado'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _idSeleccionado == null ? Colors.green : Colors.blue,
-                  ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate() &&
-                        _fechaIngreso != null) {
-                      if (_idSeleccionado == null) {
-                        _createEmpleado();
-                      } else {
-                        _updateEmpleado(_idSeleccionado!);
-                      }
-                    } else if (_fechaIngreso == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Seleccione la fecha de ingreso')),
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Divider(thickness: 1),
-                const SizedBox(height: 10),
-                const Text(
-                  'Lista de Empleados',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('Empleados')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final docs = snapshot.data!.docs;
-                    if (docs.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No hay empleados registrados.'),
-                      );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        final empleado = docs[index];
-                        final data = empleado.data() as Map<String, dynamic>;
-                        final fechaIngreso =
-                            (data['fechaIngreso'] as Timestamp).toDate();
-
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            leading: const Icon(Icons.person_outline),
-                            title: Text(data['nombreCompleto'] ?? ''),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('DNI: ${data['dni'] ?? ''}'),
-                                Text('Área: ${data['area'] ?? ''}'),
-                                Text('Cargo: ${data['cargo'] ?? ''}'),
-                                Text(
-                                    'Ingreso: ${fechaIngreso.day}/${fechaIngreso.month}/${fechaIngreso.year}'),
-                                Text('Estado: ${data['activo'] == true ? 'Activo' : 'Inactivo'}'),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () {
-                                    setState(() {
-                                      _idSeleccionado = empleado.id;
-                                      _nombreController.text = data['nombreCompleto'] ?? '';
-                                      _dniController.text = data['dni'] ?? '';
-                                      _areaSeleccionada = data['area'];
-                                      _cargoController.text = data['cargo'] ?? '';
-                                      _fechaIngreso = fechaIngreso;
-                                      _activo = data['activo'] ?? true;
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteEmpleado(empleado.id),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+              const Divider(thickness: 1),
+              const Text(
+                'Lista de Productos Orgánicos',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('ProductosOrganicos')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final docs = snapshot.data!.docs;
+                  if (docs.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No hay productos registrados.'),
                     );
-                  },
-                ),
-              ],
-            ),
+                  }
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final producto = docs[index];
+                      final data = producto.data() as Map<String, dynamic>;
+                      return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        child: ListTile(
+                          leading: const Icon(Icons.local_florist),
+                          title: Text(data['nombre'] ?? ''),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Categoría: ${data['categoria'] ?? ''}'),
+                              Text('Precio: S/.${data['precio'] ?? ''}'),
+                              Text('Origen: ${data['ciudadOrigen'] ?? ''}'),
+                              Text('Estado: ${data['activo'] == true ? 'Activo' : 'Inactivo'}'),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  setState(() {
+                                    _idSeleccionado = producto.id;
+                                    _nombreController.text = data['nombre'] ?? '';
+                                    _categoriaSeleccionada = data['categoria'];
+                                    _precioController.text =
+                                        data['precio'].toString();
+                                    _ciudadController.text =
+                                        data['ciudadOrigen'] ?? '';
+                                    _activo = data['activo'] ?? true;
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () =>
+                                    _eliminarProducto(producto.id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),

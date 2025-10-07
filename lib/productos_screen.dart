@@ -5,17 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MaterialApp(home: ProductosTecnologicosScreen()));
+  runApp(const MaterialApp(home: TechStore()));
 }
 
-class ProductosTecnologicosScreen extends StatefulWidget {
-  const ProductosTecnologicosScreen({super.key});
+class TechStore extends StatefulWidget {
+  const TechStore({super.key});
 
   @override
-  State<ProductosTecnologicosScreen> createState() => _ProductosTecnologicosScreenState();
+  State<TechStore> createState() => _TechStore();
 }
 
-class _ProductosTecnologicosScreenState extends State<ProductosTecnologicosScreen> {
+class _TechStore extends State<TechStore> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nombre = TextEditingController();
