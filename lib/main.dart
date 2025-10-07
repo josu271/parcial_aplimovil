@@ -5,6 +5,7 @@ import 'proveedores_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
+
 void main() async{
 WidgetsFlutterBinding.ensureInitialized();
 await Firebase.initializeApp();
@@ -30,7 +31,7 @@ State<BottomNav> createState() => _BottomNavState();
 class _BottomNavState extends State<BottomNav> {
 int _selectedIndex = 0;
 final List<Widget> _screens = const [
-ProductosScreen(),
+ProductosTecnologicosScreen(),
 ClientesScreen(),
 ProveedoresScreen(),
 ];
@@ -51,15 +52,15 @@ unselectedItemColor: Colors.grey,
 items: const [
 BottomNavigationBarItem(
 icon: Icon(Icons.shopping_cart),
-label: "Productos",
+label: "TechStore",
 ),
 BottomNavigationBarItem(
 icon: Icon(Icons.people),
-label: "Clientes",
+label: "GreenMarket",
 ),
 BottomNavigationBarItem(
 icon: Icon(Icons.local_shipping),
-label: "Proveedores",
+label: "FinanPlus",
 ),
 ],
 ),

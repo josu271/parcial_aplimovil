@@ -5,48 +5,48 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MaterialApp(home: ProductosScreen()));
+  runApp(const MaterialApp(home: ProductosTecnologicosScreen()));
 }
 
-class ProductosScreen extends StatefulWidget {
-  const ProductosScreen({super.key});
+class ProductosTecnologicosScreen extends StatefulWidget {
+  const ProductosTecnologicosScreen({super.key});
 
   @override
-  State<ProductosScreen> createState() => _ProductosScreenState();
+  State<ProductosTecnologicosScreen> createState() => _ProductosTecnologicosScreenState();
 }
 
-class _ProductosScreenState extends State<ProductosScreen> {
+class _ProductosTecnologicosScreenState extends State<ProductosTecnologicosScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nombre = TextEditingController();
+  final TextEditingController _marca = TextEditingController();
   final TextEditingController _precio = TextEditingController();
-  final TextEditingController _porcion = TextEditingController();
+  final TextEditingController _stock = TextEditingController();
 
-  String? _categoriaSeleccionada;
-  bool _disponible = true;
+  String? _tipoSeleccionado;
+  bool _activo = true;
   String? _idSeleccionado;
 
-  final List<String> _categorias = [
-    'Pollo a la brasa',
-    'Parrillas',
-    'Bebidas',
-    'Guarniciones',
-    'Postres'
+  final List<String> _tipos = [
+    'Accesorio',
+    'Dispositivo',
+    'Componente',
   ];
 
-  Future<void> createProductos() async {
+  Future<void> createProducto() async {
     if (!_formKey.currentState!.validate()) return;
 
     final datos = {
       'nombre': _nombre.text.trim(),
+      'marca': _marca.text.trim(),
       'precio': double.tryParse(_precio.text.trim()) ?? 0.0,
-      'porcion': _porcion.text.trim(),
-      'categoria': _categoriaSeleccionada,
-      'disponible': _disponible,
+      'stock': int.tryParse(_stock.text.trim()) ?? 0,
+      'tipo': _tipoSeleccionado,
+      'activo': _activo,
     };
 
     try {
-      await FirebaseFirestore.instance.collection('Productos').add(datos);
+      await FirebaseFirestore.instance.collection('ProductosTecnologicos').add(datos);
       limpiarFormulario();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Producto agregado correctamente')),
@@ -56,31 +56,32 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
-  Future<void> updateProductos(String id) async {
+  Future<void> updateProducto(String id) async {
     if (!_formKey.currentState!.validate()) return;
 
     final datos = {
       'nombre': _nombre.text.trim(),
+      'marca': _marca.text.trim(),
       'precio': double.tryParse(_precio.text.trim()) ?? 0.0,
-      'porcion': _porcion.text.trim(),
-      'categoria': _categoriaSeleccionada,
-      'disponible': _disponible,
+      'stock': int.tryParse(_stock.text.trim()) ?? 0,
+      'tipo': _tipoSeleccionado,
+      'activo': _activo,
     };
 
     try {
-      await FirebaseFirestore.instance.collection('Productos').doc(id).update(datos);
+      await FirebaseFirestore.instance.collection('ProductosTecnologicos').doc(id).update(datos);
       limpiarFormulario();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Producto actualizado')),
+        const SnackBar(content: Text('Producto actualizado correctamente')),
       );
     } catch (e) {
       print('Error al actualizar producto: $e');
     }
   }
 
-  Future<void> deleteProductos(String id) async {
+  Future<void> deleteProducto(String id) async {
     try {
-      await FirebaseFirestore.instance.collection('Productos').doc(id).delete();
+      await FirebaseFirestore.instance.collection('ProductosTecnologicos').doc(id).delete();
       limpiarFormulario();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Producto eliminado')),
@@ -93,10 +94,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
   void limpiarFormulario() {
     setState(() {
       _nombre.clear();
+      _marca.clear();
       _precio.clear();
-      _porcion.clear();
-      _categoriaSeleccionada = null;
-      _disponible = true;
+      _stock.clear();
+      _tipoSeleccionado = null;
+      _activo = true;
       _idSeleccionado = null;
     });
   }
@@ -105,7 +107,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Productos'),
+        title: const Text('Gestión de Productos Tecnológicos'),
         backgroundColor: const Color.fromARGB(122, 152, 120, 102),
         centerTitle: true,
       ),
@@ -118,34 +120,26 @@ class _ProductosScreenState extends State<ProductosScreen> {
               TextFormField(
                 controller: _nombre,
                 decoration: const InputDecoration(
-                  labelText: 'Nombre del plato',
-                  icon: Icon(Icons.label),
+                  labelText: 'Nombre del producto',
+                  icon: Icon(Icons.devices),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingrese el nombre del plato';
-                  }
-                  if (value.length < 3) {
-                    return 'Debe tener al menos 3 caracteres';
-                  }
+                  if (value == null || value.trim().isEmpty) return 'Ingrese el nombre del producto';
+                  if (value.length < 3) return 'Debe tener al menos 3 caracteres';
                   return null;
                 },
               ),
               const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: _categoriaSeleccionada,
-                items: _categorias
-                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                    .toList(),
-                onChanged: (val) => setState(() {
-                  _categoriaSeleccionada = val;
-                }),
+              TextFormField(
+                controller: _marca,
                 decoration: const InputDecoration(
-                  labelText: 'Categoría',
-                  icon: Icon(Icons.category),
+                  labelText: 'Marca',
+                  icon: Icon(Icons.branding_watermark),
                 ),
-                validator: (value) =>
-                    value == null ? 'Seleccione una categoría' : null,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return 'Ingrese la marca';
+                  return null;
+                },
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -154,78 +148,86 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   labelText: 'Precio',
                   icon: Icon(Icons.attach_money),
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingrese un precio';
-                  }
+                  if (value == null || value.isEmpty) return 'Ingrese el precio';
                   final num? precio = num.tryParse(value);
-                  if (precio == null || precio <= 0) {
-                    return 'Debe ser un número positivo';
-                  }
+                  if (precio == null || precio <= 0) return 'Debe ser un número positivo';
                   return null;
                 },
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _porcion,
+                controller: _stock,
                 decoration: const InputDecoration(
-                  labelText: 'Porción / Tamaño',
-                  icon: Icon(Icons.restaurant),
+                  labelText: 'Stock',
+                  icon: Icon(Icons.inventory),
                 ),
+                keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingrese la porción o tamaño';
-                  }
+                  if (value == null || value.isEmpty) return 'Ingrese el stock';
+                  final int? stock = int.tryParse(value);
+                  if (stock == null || stock <= 0) return 'El stock debe ser mayor que 0';
                   return null;
                 },
               ),
               const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _tipoSeleccionado,
+                items: _tipos
+                    .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
+                    .toList(),
+                onChanged: (val) => setState(() {
+                  _tipoSeleccionado = val;
+                }),
+                decoration: const InputDecoration(
+                  labelText: 'Tipo de producto',
+                  icon: Icon(Icons.category),
+                ),
+                validator: (value) => value == null ? 'Seleccione un tipo de producto' : null,
+              ),
+              const SizedBox(height: 10),
               SwitchListTile(
-                title: const Text('¿Disponible?'),
-                value: _disponible,
+                title: const Text('¿Activo?'),
+                value: _activo,
                 onChanged: (value) {
                   setState(() {
-                    _disponible = value;
+                    _activo = value;
                   });
                 },
                 secondary: Icon(
-                  _disponible ? Icons.check_circle : Icons.cancel,
-                  color: _disponible ? Colors.green : Colors.red,
+                  _activo ? Icons.check_circle : Icons.cancel,
+                  color: _activo ? Colors.green : Colors.red,
                 ),
               ),
               const SizedBox(height: 10),
               ElevatedButton.icon(
                 onPressed: () {
                   if (_idSeleccionado == null) {
-                    createProductos();
+                    createProducto();
                   } else {
-                    updateProductos(_idSeleccionado!);
+                    updateProducto(_idSeleccionado!);
                   }
                 },
                 icon: Icon(_idSeleccionado == null ? Icons.add : Icons.save),
-                label: Text(
-                  _idSeleccionado == null
-                      ? 'Agregar Producto'
-                      : 'Actualizar Producto',
-                ),
+                label: Text(_idSeleccionado == null
+                    ? 'Agregar Producto'
+                    : 'Actualizar Producto'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _idSeleccionado == null ? Colors.green : Colors.blue,
+                  backgroundColor: _idSeleccionado == null ? Colors.green : Colors.blue,
                 ),
               ),
               const SizedBox(height: 20),
               const Divider(thickness: 1),
               const SizedBox(height: 10),
               const Text(
-                'Lista de Productos',
+                'Lista de Productos Tecnológicos',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               StreamBuilder(
                 stream: FirebaseFirestore.instance
-                    .collection('Productos')
+                    .collection('ProductosTecnologicos')
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -246,19 +248,18 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       final producto = docs[index];
                       return Card(
                         elevation: 2,
-                        margin:
-                            const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                         child: ListTile(
-                          leading: const Icon(Icons.shopping_basket),
+                          leading: const Icon(Icons.computer),
                           title: Text(producto['nombre']),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text('Marca: ${producto['marca']}'),
                               Text('Precio: S/.${producto['precio']}'),
-                              Text('Porción: ${producto['porcion']}'),
-                              Text('Categoría: ${producto['categoria']}'),
-                              Text(
-                                  'Estado: ${producto['disponible'] ? 'Disponible' : 'No disponible'}'),
+                              Text('Stock: ${producto['stock']} unidades'),
+                              Text('Tipo: ${producto['tipo']}'),
+                              Text('Estado: ${producto['activo'] ? 'Activo' : 'Inactivo'}'),
                             ],
                           ),
                           trailing: Row(
@@ -270,20 +271,17 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   setState(() {
                                     _idSeleccionado = producto.id;
                                     _nombre.text = producto['nombre'];
-                                    _precio.text =
-                                        producto['precio'].toString();
-                                    _porcion.text = producto['porcion'];
-                                    _categoriaSeleccionada =
-                                        producto['categoria'];
-                                    _disponible = producto['disponible'];
+                                    _marca.text = producto['marca'];
+                                    _precio.text = producto['precio'].toString();
+                                    _stock.text = producto['stock'].toString();
+                                    _tipoSeleccionado = producto['tipo'];
+                                    _activo = producto['activo'];
                                   });
                                 },
                               ),
                               IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () =>
-                                    deleteProductos(producto.id),
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => deleteProducto(producto.id),
                               ),
                             ],
                           ),
